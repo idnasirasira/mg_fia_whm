@@ -86,24 +86,41 @@
             <button type="button" onclick="removePackage(${packageCount})" class="text-red-600 hover:text-red-900 text-sm">Remove</button>
         </div>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="sm:col-span-2">
+                <label class="block text-sm font-medium text-neutral-700">Product (Optional)</label>
+                <select name="packages[${packageCount}][product_id]" id="product-select-${packageCount}"
+                        class="mt-1 block w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        onchange="fillProductData(${packageCount}, this.value)">
+                    <option value="">-- Select Product (Optional) --</option>
+                    @foreach($products as $product)
+                        <option value="{{ $product->id }}" 
+                                data-weight="{{ $product->weight ?? '' }}"
+                                data-dimensions="{{ $product->dimensions ?? '' }}"
+                                data-value="{{ $product->value ?? 0 }}">
+                            {{ $product->name }} @if($product->sku)({{ $product->sku }})@endif
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-xs text-neutral-500">Select product to auto-fill weight, dimensions, and value</p>
+            </div>
             <div>
                 <label class="block text-sm font-medium text-neutral-700">Quantity *</label>
-                <input type="number" name="packages[${packageCount}][quantity]" required min="1" value="1"
+                <input type="number" name="packages[${packageCount}][quantity]" id="quantity-${packageCount}" required min="1" value="1"
                        class="mt-1 block w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
             </div>
             <div>
                 <label class="block text-sm font-medium text-neutral-700">Weight (kg)</label>
-                <input type="number" step="0.01" name="packages[${packageCount}][weight]" min="0"
+                <input type="number" step="0.01" name="packages[${packageCount}][weight]" id="weight-${packageCount}" min="0"
                        class="mt-1 block w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
             </div>
             <div>
                 <label class="block text-sm font-medium text-neutral-700">Dimensions</label>
-                <input type="text" name="packages[${packageCount}][dimensions]" placeholder="LxWxH"
+                <input type="text" name="packages[${packageCount}][dimensions]" id="dimensions-${packageCount}" placeholder="LxWxH"
                        class="mt-1 block w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
             </div>
             <div>
                 <label class="block text-sm font-medium text-neutral-700">Value ($)</label>
-                <input type="number" step="0.01" name="packages[${packageCount}][value]" min="0" value="0"
+                <input type="number" step="0.01" name="packages[${packageCount}][value]" id="value-${packageCount}" min="0" value="0"
                        class="mt-1 block w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
             </div>
             <div>
@@ -136,6 +153,47 @@
         const packageDiv = document.getElementById(`package-${id}`);
         if (packageDiv) {
             packageDiv.remove();
+        }
+    }
+
+    // Auto-fill product data when product is selected
+    function fillProductData(packageIndex, productId) {
+        if (!productId) {
+            return;
+        }
+
+        const select = document.getElementById(`product-select-${packageIndex}`);
+        const selectedOption = select.options[select.selectedIndex];
+
+        if (selectedOption) {
+            const weight = selectedOption.getAttribute('data-weight');
+            const dimensions = selectedOption.getAttribute('data-dimensions');
+            const value = selectedOption.getAttribute('data-value');
+
+            // Auto-fill fields if they are empty
+            const weightInput = document.getElementById(`weight-${packageIndex}`);
+            const dimensionsInput = document.getElementById(`dimensions-${packageIndex}`);
+            const valueInput = document.getElementById(`value-${packageIndex}`);
+
+            if (weight && !weightInput.value) {
+                weightInput.value = weight;
+            }
+            if (dimensions && !dimensionsInput.value) {
+                dimensionsInput.value = dimensions;
+            }
+            if (value && !valueInput.value) {
+                valueInput.value = value;
+            }
+
+            // Visual feedback
+            [weightInput, dimensionsInput, valueInput].forEach(input => {
+                if (input.value) {
+                    input.style.backgroundColor = '#d1fae5';
+                    setTimeout(() => {
+                        input.style.backgroundColor = '';
+                    }, 1000);
+                }
+            });
         }
     }
 

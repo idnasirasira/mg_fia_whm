@@ -45,6 +45,12 @@ class DashboardController extends Controller
             'delivered' => Package::where('status', 'delivered')->count(),
         ];
 
+        // Package product assignment stats
+        $packageProductStats = [
+            'with_product' => Package::whereNotNull('product_id')->count(),
+            'without_product' => Package::whereNull('product_id')->count(),
+        ];
+
         // Revenue & Value Stats
         $revenueStats = [
             'total_customs_value' => OutboundShipment::sum('customs_value') ?? 0,
@@ -99,6 +105,7 @@ class DashboardController extends Controller
             'stats',
             'statusStats',
             'packageStats',
+            'packageProductStats',
             'revenueStats',
             'recentActivities',
             'recentInbound',

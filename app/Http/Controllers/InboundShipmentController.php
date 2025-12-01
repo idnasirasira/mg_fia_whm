@@ -31,8 +31,9 @@ class InboundShipmentController extends Controller
     {
         $customers = Customer::all();
         $warehouses = Warehouse::where('status', 'active')->get();
+        $products = \App\Models\Product::orderBy('name')->get();
 
-        return view('inbound-shipments.create', compact('customers', 'warehouses'));
+        return view('inbound-shipments.create', compact('customers', 'warehouses', 'products'));
     }
 
     /**

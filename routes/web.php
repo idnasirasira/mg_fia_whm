@@ -35,6 +35,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Products
     Route::resource('products', ProductController::class);
+    Route::get('/products/create-from-package/{package}', [ProductController::class, 'createFromPackage'])->name('products.create-from-package');
 
     // Customers
     Route::resource('customers', CustomerController::class);

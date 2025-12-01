@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
 use App\Models\Category;
+use App\Models\Package;
 use App\Models\Product;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
@@ -34,6 +35,27 @@ class ProductController extends Controller
     }
 
     /**
+     * Create product from package data.
+     */
+    public function createFromPackage(Package $package)
+    {
+        $categories = Category::all();
+        $warehouses = Warehouse::where('status', 'active')->get();
+
+        // Pre-fill data from package
+        $packageData = [
+            'name' => $package->product ? $package->product->name : 'Product from Package #' . $package->id,
+            'weight' => $package->weight,
+            'dimensions' => $package->dimensions,
+            'value' => $package->value,
+            'location_id' => $package->location_id,
+            'stock_quantity' => $package->quantity,
+        ];
+
+        return view('products.create', compact('categories', 'warehouses', 'packageData', 'package'));
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
@@ -48,13 +70,33 @@ class ProductController extends Controller
             'value' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer|min:0',
             'location_id' => 'nullable|exists:warehouses,id',
+            'package_id' => 'nullable|exists:packages,id',
         ]);
 
         $product = Product::create($validated);
 
+        // If created from package, update package with product_id
+        if ($request->has('package_id') && $request->package_id) {
+            $package = Package::find($request->package_id);
+            if ($package && !$package->product_id) {
+                $package->update(['product_id' => $product->id]);
+
+                // Update stock if package is stored
+                if ($package->status === 'stored' && $package->product) {
+                    $package->product->increment('stock_quantity', $package->quantity);
+                }
+
+                ActivityLog::log('updated', $package, 'Package #' . $package->id . ' assigned to product: ' . $product->name);
+            }
+        }
+
         ActivityLog::log('created', $product, 'Product created: ' . $product->name);
 
-        return redirect()->route('products.index')
+        $redirectRoute = $request->has('package_id') && $request->package_id
+            ? route('packages.show', $request->package_id)
+            : route('products.index');
+
+        return redirect($redirectRoute)
             ->with('success', 'Product created successfully.');
     }
 
@@ -87,7 +129,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'sku' => 'required|string|max:255|unique:products,sku,'.$product->id,
+            'sku' => 'required|string|max:255|unique:products,sku,' . $product->id,
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',

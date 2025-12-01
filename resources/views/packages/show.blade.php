@@ -32,7 +32,23 @@
                 </div>
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Product</dt>
-                    <dd class="mt-1 text-sm text-neutral-900">{{ $package->product ? $package->product->name : 'N/A' }}</dd>
+                    <dd class="mt-1 text-sm text-neutral-900">
+                        @if($package->product)
+                        <a href="{{ route('products.show', $package->product) }}" class="text-primary-600 hover:text-primary-900 font-medium">
+                            {{ $package->product->name }}
+                        </a>
+                        @if($package->product->sku)
+                        <span class="text-neutral-500 text-xs">({{ $package->product->sku }})</span>
+                        @endif
+                        @else
+                        <span class="text-neutral-400">No Product Assigned</span>
+                        @if(auth()->user()->isAdmin() || auth()->user()->isManager())
+                        <a href="{{ route('products.create-from-package', $package) }}" class="ml-2 text-xs text-accent-600 hover:text-accent-700 underline">
+                            Create Product from Package
+                        </a>
+                        @endif
+                        @endif
+                    </dd>
                 </div>
                 <div>
                     <dt class="text-sm font-medium text-neutral-500">Quantity</dt>

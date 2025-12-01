@@ -135,6 +135,16 @@
                         <span class="text-sm text-neutral-600">Delivered</span>
                         <span class="text-sm font-semibold text-secondary-600">{{ $packageStats['delivered'] }}</span>
                     </div>
+                    <div class="pt-2 border-t border-neutral-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-neutral-600">With Product</span>
+                            <span class="text-sm font-semibold text-primary-600">{{ $packageProductStats['with_product'] }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-neutral-600">Without Product</span>
+                            <span class="text-sm font-semibold text-neutral-400">{{ $packageProductStats['without_product'] }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -178,19 +188,19 @@
                 </div>
                 <div class="space-y-3">
                     @forelse($recentInbound as $shipment)
-                        <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors">
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-neutral-900">{{ $shipment->tracking_number }}</p>
-                                <p class="text-xs text-neutral-500">{{ $shipment->customer->name }} • {{ $shipment->received_date->format('M d, Y') }}</p>
-                            </div>
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                    <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-neutral-900">{{ $shipment->tracking_number }}</p>
+                            <p class="text-xs text-neutral-500">{{ $shipment->customer->name }} • {{ $shipment->received_date->format('M d, Y') }}</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                 {{ $shipment->status === 'stored' ? 'bg-secondary-100 text-secondary-800' : 
                                    ($shipment->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-primary-100 text-primary-800') }}">
-                                {{ ucfirst($shipment->status) }}
-                            </span>
-                        </div>
+                            {{ ucfirst($shipment->status) }}
+                        </span>
+                    </div>
                     @empty
-                        <p class="text-sm text-neutral-500 text-center py-4">No recent inbound shipments</p>
+                    <p class="text-sm text-neutral-500 text-center py-4">No recent inbound shipments</p>
                     @endforelse
                 </div>
             </div>
@@ -208,20 +218,20 @@
                 </div>
                 <div class="space-y-3">
                     @forelse($recentOutbound as $shipment)
-                        <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors">
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-neutral-900">{{ $shipment->tracking_number }}</p>
-                                <p class="text-xs text-neutral-500">{{ $shipment->customer->name }} • {{ $shipment->shipping_date->format('M d, Y') }}</p>
-                            </div>
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                    <div class="flex items-center justify-between p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-neutral-900">{{ $shipment->tracking_number }}</p>
+                            <p class="text-xs text-neutral-500">{{ $shipment->customer->name }} • {{ $shipment->shipping_date->format('M d, Y') }}</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                 {{ $shipment->status === 'delivered' ? 'bg-secondary-100 text-secondary-800' : 
                                    ($shipment->status === 'returned' ? 'bg-red-100 text-red-800' : 
                                     ($shipment->status === 'shipped' || $shipment->status === 'in_transit' ? 'bg-primary-100 text-primary-800' : 'bg-accent-100 text-accent-800')) }}">
-                                {{ ucfirst(str_replace('_', ' ', $shipment->status)) }}
-                            </span>
-                        </div>
+                            {{ ucfirst(str_replace('_', ' ', $shipment->status)) }}
+                        </span>
+                    </div>
                     @empty
-                        <p class="text-sm text-neutral-500 text-center py-4">No recent outbound shipments</p>
+                    <p class="text-sm text-neutral-500 text-center py-4">No recent outbound shipments</p>
                     @endforelse
                 </div>
             </div>
@@ -241,43 +251,43 @@
             </div>
             <div class="space-y-3">
                 @forelse($recentActivities as $activity)
-                    <div class="flex items-start p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors">
-                        <div class="flex-shrink-0 mt-0.5">
-                            @if($activity->action === 'created')
-                                <div class="w-8 h-8 rounded-full bg-secondary-100 flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                                    </svg>
-                                </div>
-                            @elseif($activity->action === 'updated')
-                                <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </div>
-                            @else
-                                <div class="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
-                                </div>
-                            @endif
+                <div class="flex items-start p-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors">
+                    <div class="flex-shrink-0 mt-0.5">
+                        @if($activity->action === 'created')
+                        <div class="w-8 h-8 rounded-full bg-secondary-100 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-secondary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
                         </div>
-                        <div class="ml-3 flex-1 min-w-0">
-                            <p class="text-sm text-neutral-900">
-                                <span class="font-medium">{{ $activity->user->name }}</span>
-                                <span class="text-neutral-600">{{ $activity->action }}</span>
-                                <span class="font-medium">{{ class_basename($activity->model_type) }}</span>
-                            </p>
-                            @if($activity->description)
-                                <p class="text-xs text-neutral-500 mt-1">{{ $activity->description }}</p>
-                            @endif
-                            <p class="text-xs text-neutral-400 mt-1">{{ $activity->created_at->diffForHumans() }}</p>
+                        @elseif($activity->action === 'updated')
+                        <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                         </div>
+                        @else
+                        <div class="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-neutral-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </div>
+                        @endif
                     </div>
+                    <div class="ml-3 flex-1 min-w-0">
+                        <p class="text-sm text-neutral-900">
+                            <span class="font-medium">{{ $activity->user->name }}</span>
+                            <span class="text-neutral-600">{{ $activity->action }}</span>
+                            <span class="font-medium">{{ class_basename($activity->model_type) }}</span>
+                        </p>
+                        @if($activity->description)
+                        <p class="text-xs text-neutral-500 mt-1">{{ $activity->description }}</p>
+                        @endif
+                        <p class="text-xs text-neutral-400 mt-1">{{ $activity->created_at->diffForHumans() }}</p>
+                    </div>
+                </div>
                 @empty
-                    <p class="text-sm text-neutral-500 text-center py-4">No recent activities</p>
+                <p class="text-sm text-neutral-500 text-center py-4">No recent activities</p>
                 @endforelse
             </div>
         </div>
@@ -299,15 +309,15 @@
                 </div>
                 <div class="space-y-2">
                     @foreach($lowStockProducts as $product)
-                        <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-red-200">
-                            <div class="flex-1">
-                                <p class="text-sm font-medium text-neutral-900">{{ $product->name }}</p>
-                                <p class="text-xs text-neutral-500">{{ $product->sku ?? 'N/A' }}</p>
-                            </div>
-                            <span class="px-3 py-1 text-sm font-bold text-red-700 bg-red-100 rounded-full">
-                                {{ $product->stock_quantity }} left
-                            </span>
+                    <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-red-200">
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-neutral-900">{{ $product->name }}</p>
+                            <p class="text-xs text-neutral-500">{{ $product->sku ?? 'N/A' }}</p>
                         </div>
+                        <span class="px-3 py-1 text-sm font-bold text-red-700 bg-red-100 rounded-full">
+                            {{ $product->stock_quantity }} left
+                        </span>
+                    </div>
                     @endforeach
                 </div>
             </div>

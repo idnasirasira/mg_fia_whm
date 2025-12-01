@@ -150,15 +150,28 @@
                                 onchange="updatePackageSummary()">
                             <div class="ml-3 flex-1">
                                 <div class="text-sm font-medium text-neutral-900">
-                                    {{ $package->product ? $package->product->name : 'Package #' . $package->id }}
+                                    @if($package->product)
+                                    <span class="inline-flex items-center">
+                                        <svg class="w-4 h-4 mr-1 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        {{ $package->product->name }}
+                                        @if($package->product->sku)
+                                        <span class="ml-1 text-xs text-neutral-500 font-normal">({{ $package->product->sku }})</span>
+                                        @endif
+                                    </span>
+                                    @else
+                                    <span class="text-neutral-600">Package #{{ $package->id }}</span>
+                                    <span class="ml-2 text-xs text-neutral-400">(No Product)</span>
+                                    @endif
                                 </div>
-                                <div class="text-xs text-neutral-500">
-                                    Qty: <span class="font-medium">{{ $package->quantity }}</span> |
-                                    Weight: <span class="font-medium">{{ $package->weight ? $package->weight . ' kg' : 'N/A' }}</span> |
-                                    Value: <span class="font-medium">${{ number_format($package->value, 2) }}</span> |
-                                    Location: <span class="font-medium">{{ $package->location ? $package->location->name : 'N/A' }}</span>
+                                <div class="text-xs text-neutral-500 mt-1">
+                                    <span class="font-medium">Qty:</span> {{ $package->quantity }} |
+                                    <span class="font-medium">Weight:</span> {{ $package->weight ? $package->weight . ' kg' : 'N/A' }} |
+                                    <span class="font-medium">Value:</span> ${{ number_format($package->value, 2) }} |
+                                    <span class="font-medium">Location:</span> {{ $package->location ? $package->location->name : 'N/A' }}
                                     @if($package->inboundShipment)
-                                    | Inbound: <span class="font-medium text-primary-600">{{ $package->inboundShipment->tracking_number }}</span>
+                                    | <span class="font-medium">Inbound:</span> <span class="text-primary-600">{{ $package->inboundShipment->tracking_number }}</span>
                                     @endif
                                 </div>
                                 <div class="mt-1">
