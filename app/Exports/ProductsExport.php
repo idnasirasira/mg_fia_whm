@@ -19,9 +19,6 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping, WithS
         return Product::with(['category', 'location'])->get();
     }
 
-    /**
-     * @return array
-     */
     public function headings(): array
     {
         return [
@@ -38,8 +35,7 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping, WithS
     }
 
     /**
-     * @param Product $product
-     * @return array
+     * @param  Product  $product
      */
     public function map($product): array
     {
@@ -57,7 +53,6 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping, WithS
     }
 
     /**
-     * @param Worksheet $sheet
      * @return array
      */
     public function styles(Worksheet $sheet)

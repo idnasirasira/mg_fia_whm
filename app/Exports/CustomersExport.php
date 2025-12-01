@@ -19,9 +19,6 @@ class CustomersExport implements FromCollection, WithHeadings, WithMapping, With
         return Customer::all();
     }
 
-    /**
-     * @return array
-     */
     public function headings(): array
     {
         return [
@@ -36,8 +33,7 @@ class CustomersExport implements FromCollection, WithHeadings, WithMapping, With
     }
 
     /**
-     * @param Customer $customer
-     * @return array
+     * @param  Customer  $customer
      */
     public function map($customer): array
     {
@@ -53,7 +49,6 @@ class CustomersExport implements FromCollection, WithHeadings, WithMapping, With
     }
 
     /**
-     * @param Worksheet $sheet
      * @return array
      */
     public function styles(Worksheet $sheet)

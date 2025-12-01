@@ -43,7 +43,7 @@ class ActivityLog extends Model
      */
     public static function log(string $action, $model, ?string $description = null, ?array $changes = null): void
     {
-        if (!$model || !isset($model->id)) {
+        if (! $model || ! isset($model->id)) {
             return;
         }
 

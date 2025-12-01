@@ -26,4 +26,3 @@ return [
         'Kurir Lainnya' => 'Kurir Lainnya',
     ],
 ];
-

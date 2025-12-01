@@ -15,7 +15,7 @@ class WarehouseController extends Controller
         $warehouses = Warehouse::withCount(['products', 'packages', 'users'])
             ->latest()
             ->paginate(15);
-        
+
         return view('warehouses.index', compact('warehouses'));
     }
 
@@ -52,7 +52,7 @@ class WarehouseController extends Controller
     public function show(Warehouse $warehouse)
     {
         $warehouse->load(['products', 'packages', 'users']);
-        
+
         return view('warehouses.show', compact('warehouse'));
     }
 

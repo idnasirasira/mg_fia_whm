@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\InboundShipment;
+use App\Models\ActivityLog;
 use App\Models\Customer;
+use App\Models\InboundShipment;
 use App\Models\Package;
 use App\Models\Warehouse;
-use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -71,16 +71,18 @@ class InboundShipmentController extends Controller
         // Create packages
         foreach ($validated['packages'] as $packageData) {
             // Set package status based on shipment status
-            $packageStatus = 'received';
-            if ($validated['status'] === 'stored') {
-                $packageStatus = 'stored';
-            } elseif ($validated['status'] === 'inspected') {
-                $packageStatus = 'received';
-            }
+            // Map shipment status to appropriate package status
+            $packageStatus = match ($validated['status']) {
+                'stored' => 'stored',
+                'inspected' => 'received',
+                'pending' => 'pending',
+                'rejected' => 'rejected',
+                default => 'received', // 'received' status
+            };
 
             // Build customs info
             $customsInfo = null;
-            if (!empty($packageData['hs_code']) || !empty($packageData['customs_description'])) {
+            if (! empty($packageData['hs_code']) || ! empty($packageData['customs_description'])) {
                 $customsInfo = [
                     'hs_code' => $packageData['hs_code'] ?? null,
                     'description' => $packageData['customs_description'] ?? null,

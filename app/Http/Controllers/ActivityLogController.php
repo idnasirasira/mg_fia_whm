@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ActivityLogController extends Controller
 {
@@ -41,7 +40,7 @@ class ActivityLogController extends Controller
 
         // Search by description
         if ($request->filled('search')) {
-            $query->where('description', 'like', '%' . $request->search . '%');
+            $query->where('description', 'like', '%'.$request->search.'%');
         }
 
         $activityLogs = $query->paginate(20)->withQueryString();
@@ -54,6 +53,7 @@ class ActivityLogController extends Controller
         // Get model type labels (remove namespace)
         $modelTypeLabels = $modelTypes->mapWithKeys(function ($type) {
             $label = class_basename($type);
+
             return [$type => $label];
         });
 
@@ -93,7 +93,7 @@ class ActivityLogController extends Controller
     private function getModelUrl(string $modelType, int $modelId): ?string
     {
         $modelName = class_basename($modelType);
-        
+
         $routes = [
             'Product' => 'products.show',
             'Customer' => 'customers.show',
@@ -117,4 +117,3 @@ class ActivityLogController extends Controller
         return null;
     }
 }
-

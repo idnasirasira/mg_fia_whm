@@ -17,7 +17,7 @@ class RegisterController extends Controller
     public function showRegistrationForm()
     {
         $warehouses = Warehouse::where('status', 'active')->get();
-        
+
         return view('auth.register', compact('warehouses'));
     }
 

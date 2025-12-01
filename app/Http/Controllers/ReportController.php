@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\Package;
-use App\Models\InboundShipment;
-use App\Models\OutboundShipment;
-use App\Models\Customer;
-use App\Models\Warehouse;
-use App\Exports\ProductsExport;
 use App\Exports\CustomersExport;
 use App\Exports\InboundShipmentsExport;
 use App\Exports\OutboundShipmentsExport;
+use App\Exports\ProductsExport;
+use App\Models\Customer;
+use App\Models\InboundShipment;
+use App\Models\OutboundShipment;
+use App\Models\Package;
+use App\Models\Product;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use Carbon\Carbon;
 
 class ReportController extends Controller
 {
@@ -139,7 +138,7 @@ class ReportController extends Controller
      */
     public function exportProducts()
     {
-        return Excel::download(new ProductsExport, 'products_' . date('Y-m-d_His') . '.xlsx');
+        return Excel::download(new ProductsExport, 'products_'.date('Y-m-d_His').'.xlsx');
     }
 
     /**
@@ -147,7 +146,7 @@ class ReportController extends Controller
      */
     public function exportCustomers()
     {
-        return Excel::download(new CustomersExport, 'customers_' . date('Y-m-d_His') . '.xlsx');
+        return Excel::download(new CustomersExport, 'customers_'.date('Y-m-d_His').'.xlsx');
     }
 
     /**
@@ -155,7 +154,7 @@ class ReportController extends Controller
      */
     public function exportInboundShipments()
     {
-        return Excel::download(new InboundShipmentsExport, 'inbound_shipments_' . date('Y-m-d_His') . '.xlsx');
+        return Excel::download(new InboundShipmentsExport, 'inbound_shipments_'.date('Y-m-d_His').'.xlsx');
     }
 
     /**
@@ -163,6 +162,6 @@ class ReportController extends Controller
      */
     public function exportOutboundShipments()
     {
-        return Excel::download(new OutboundShipmentsExport, 'outbound_shipments_' . date('Y-m-d_His') . '.xlsx');
+        return Excel::download(new OutboundShipmentsExport, 'outbound_shipments_'.date('Y-m-d_His').'.xlsx');
     }
 }

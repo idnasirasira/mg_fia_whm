@@ -13,7 +13,7 @@ class CustomerController extends Controller
     public function index()
     {
         $customers = Customer::latest()->paginate(15);
-        
+
         return view('customers.index', compact('customers'));
     }
 
@@ -51,7 +51,7 @@ class CustomerController extends Controller
     public function show(Customer $customer)
     {
         $customer->load(['inboundShipments', 'outboundShipments']);
-        
+
         return view('customers.show', compact('customer'));
     }
 
@@ -70,7 +70,7 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255|unique:customers,email,' . $customer->id,
+            'email' => 'nullable|email|max:255|unique:customers,email,'.$customer->id,
             'phone' => 'nullable|string|max:255',
             'address' => 'required|string',
             'country' => 'required|string|max:255',

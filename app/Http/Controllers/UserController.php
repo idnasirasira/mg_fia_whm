@@ -18,7 +18,7 @@ class UserController extends Controller
         $users = User::with('warehouse')
             ->latest()
             ->paginate(15);
-        
+
         return view('users.index', compact('users'));
     }
 
@@ -28,7 +28,7 @@ class UserController extends Controller
     public function create()
     {
         $warehouses = Warehouse::where('status', 'active')->get();
-        
+
         return view('users.create', compact('warehouses'));
     }
 
@@ -63,7 +63,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load('warehouse');
-        
+
         return view('users.show', compact('user'));
     }
 
@@ -73,7 +73,7 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $warehouses = Warehouse::where('status', 'active')->get();
-        
+
         return view('users.edit', compact('user', 'warehouses'));
     }
 
@@ -84,7 +84,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,'.$user->id],
             'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'string', 'in:admin,manager,staff'],
             'warehouse_id' => ['nullable', 'exists:warehouses,id'],
@@ -97,7 +97,7 @@ class UserController extends Controller
             'warehouse_id' => $validated['warehouse_id'] ?? null,
         ];
 
-        if (!empty($validated['password'])) {
+        if (! empty($validated['password'])) {
             $updateData['password'] = Hash::make($validated['password']);
         }
 

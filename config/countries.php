@@ -45,4 +45,3 @@ return [
         'ZA' => 'South Africa',
     ],
 ];
-

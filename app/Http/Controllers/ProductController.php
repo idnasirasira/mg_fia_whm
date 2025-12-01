@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
@@ -17,7 +17,7 @@ class ProductController extends Controller
         $products = Product::with(['category', 'location'])
             ->latest()
             ->paginate(15);
-        
+
         return view('products.index', compact('products'));
     }
 
@@ -28,7 +28,7 @@ class ProductController extends Controller
     {
         $categories = Category::all();
         $warehouses = Warehouse::where('status', 'active')->get();
-        
+
         return view('products.create', compact('categories', 'warehouses'));
     }
 
@@ -61,7 +61,7 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $product->load(['category', 'location', 'packages']);
-        
+
         return view('products.show', compact('product'));
     }
 
@@ -72,7 +72,7 @@ class ProductController extends Controller
     {
         $categories = Category::all();
         $warehouses = Warehouse::where('status', 'active')->get();
-        
+
         return view('products.edit', compact('product', 'categories', 'warehouses'));
     }
 
@@ -82,7 +82,7 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
-            'sku' => 'required|string|max:255|unique:products,sku,' . $product->id,
+            'sku' => 'required|string|max:255|unique:products,sku,'.$product->id,
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',

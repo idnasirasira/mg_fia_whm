@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Product;
-use App\Models\Package;
+use App\Models\Customer;
 use App\Models\InboundShipment;
 use App\Models\OutboundShipment;
-use App\Models\Customer;
+use App\Models\Package;
+use App\Models\Product;
 
 class DashboardController extends Controller
 {

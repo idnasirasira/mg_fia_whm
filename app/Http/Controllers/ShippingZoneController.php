@@ -15,7 +15,7 @@ class ShippingZoneController extends Controller
         $shippingZones = ShippingZone::withCount('outboundShipments')
             ->latest()
             ->paginate(15);
-        
+
         return view('shipping-zones.index', compact('shippingZones'));
     }
 
@@ -64,7 +64,7 @@ class ShippingZoneController extends Controller
     public function show(ShippingZone $shippingZone)
     {
         $shippingZone->load('outboundShipments.customer');
-        
+
         return view('shipping-zones.show', compact('shippingZone'));
     }
 

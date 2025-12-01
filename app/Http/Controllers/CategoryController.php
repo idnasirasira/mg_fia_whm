@@ -16,7 +16,7 @@ class CategoryController extends Controller
             ->withCount('products')
             ->latest()
             ->paginate(15);
-        
+
         return view('categories.index', compact('categories'));
     }
 
@@ -26,7 +26,7 @@ class CategoryController extends Controller
     public function create()
     {
         $parentCategories = Category::whereNull('parent_id')->get();
-        
+
         return view('categories.create', compact('parentCategories'));
     }
 
@@ -53,7 +53,7 @@ class CategoryController extends Controller
     public function show(Category $category)
     {
         $category->load(['parent', 'children', 'products']);
-        
+
         return view('categories.show', compact('category'));
     }
 
@@ -65,7 +65,7 @@ class CategoryController extends Controller
         $parentCategories = Category::whereNull('parent_id')
             ->where('id', '!=', $category->id)
             ->get();
-        
+
         return view('categories.edit', compact('category', 'parentCategories'));
     }
 

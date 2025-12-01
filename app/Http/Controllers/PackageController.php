@@ -87,7 +87,7 @@ class PackageController extends Controller
     {
         $trackingNumber = $request->get('tracking_number');
 
-        if (!$trackingNumber) {
+        if (! $trackingNumber) {
             return view('packages.track', ['package' => null, 'trackingNumber' => null]);
         }
 

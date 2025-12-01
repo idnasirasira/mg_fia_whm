@@ -218,7 +218,18 @@ class OutboundShipmentController extends Controller
         } elseif ($validated['status'] === 'delivered') {
             $outboundShipment->packages()->update(['status' => 'delivered']);
         } elseif ($validated['status'] === 'returned') {
-            $outboundShipment->packages()->update(['status' => 'stored']);
+            // When returned, restore packages to stored status and increment stock
+            foreach ($outboundShipment->packages as $package) {
+                $package->update([
+                    'status' => 'stored',
+                    'outbound_shipment_id' => null, // Release from outbound shipment
+                ]);
+                
+                // Restore product stock quantity
+                if ($package->product_id && $package->product) {
+                    $package->product->increment('stock_quantity', $package->quantity);
+                }
+            }
         }
 
         if ($request->ajax()) {

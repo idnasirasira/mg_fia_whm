@@ -19,9 +19,6 @@ class InboundShipmentsExport implements FromCollection, WithHeadings, WithMappin
         return InboundShipment::with('customer')->get();
     }
 
-    /**
-     * @return array
-     */
     public function headings(): array
     {
         return [
@@ -36,8 +33,7 @@ class InboundShipmentsExport implements FromCollection, WithHeadings, WithMappin
     }
 
     /**
-     * @param InboundShipment $shipment
-     * @return array
+     * @param  InboundShipment  $shipment
      */
     public function map($shipment): array
     {
@@ -53,7 +49,6 @@ class InboundShipmentsExport implements FromCollection, WithHeadings, WithMappin
     }
 
     /**
-     * @param Worksheet $sheet
      * @return array
      */
     public function styles(Worksheet $sheet)

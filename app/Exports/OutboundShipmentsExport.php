@@ -19,9 +19,6 @@ class OutboundShipmentsExport implements FromCollection, WithHeadings, WithMappi
         return OutboundShipment::with(['customer', 'shippingZone'])->get();
     }
 
-    /**
-     * @return array
-     */
     public function headings(): array
     {
         return [
@@ -39,8 +36,7 @@ class OutboundShipmentsExport implements FromCollection, WithHeadings, WithMappi
     }
 
     /**
-     * @param OutboundShipment $shipment
-     * @return array
+     * @param  OutboundShipment  $shipment
      */
     public function map($shipment): array
     {
@@ -59,7 +55,6 @@ class OutboundShipmentsExport implements FromCollection, WithHeadings, WithMappi
     }
 
     /**
-     * @param Worksheet $sheet
      * @return array
      */
     public function styles(Worksheet $sheet)

@@ -1,20 +1,20 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InboundShipmentController;
 use App\Http\Controllers\OutboundShipmentController;
 use App\Http\Controllers\PackageController;
-use App\Http\Controllers\ShippingZoneController;
-use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ShippingZoneController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\WarehouseController;
+use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
