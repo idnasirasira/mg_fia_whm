@@ -185,7 +185,20 @@ class OutboundShipmentController extends Controller
             'shipping_zone_id' => 'nullable|exists:shipping_zones,id',
         ]);
 
+        $oldData = $outboundShipment->toArray();
         $outboundShipment->update($validated);
+        $newData = $outboundShipment->fresh()->toArray();
+
+        // Track changes
+        $changes = [];
+        foreach ($validated as $key => $value) {
+            if (isset($oldData[$key]) && $oldData[$key] != $value) {
+                $changes[$key] = [
+                    'old' => $oldData[$key],
+                    'new' => $value,
+                ];
+            }
+        }
 
         // Update package status based on shipment status
         if ($validated['status'] === 'shipped') {
@@ -195,7 +208,7 @@ class OutboundShipmentController extends Controller
         }
 
         // Log activity
-        ActivityLog::log('updated', $outboundShipment, 'Outbound shipment updated');
+        ActivityLog::log('updated', $outboundShipment, 'Outbound shipment updated: ' . $outboundShipment->tracking_number, $changes);
 
         return redirect()->route('outbound-shipments.show', $outboundShipment)
             ->with('success', 'Outbound shipment updated successfully.');
@@ -210,6 +223,7 @@ class OutboundShipmentController extends Controller
             'status' => 'required|string|in:pending,packed,shipped,in_transit,delivered,returned',
         ]);
 
+        $oldStatus = $outboundShipment->status;
         $outboundShipment->update(['status' => $validated['status']]);
 
         // Update package status based on shipment status
@@ -232,6 +246,15 @@ class OutboundShipmentController extends Controller
             }
         }
 
+        // Log activity with status change
+        $changes = [
+            'status' => [
+                'old' => $oldStatus,
+                'new' => $validated['status'],
+            ],
+        ];
+        ActivityLog::log('updated', $outboundShipment, 'Outbound shipment status updated: ' . $outboundShipment->tracking_number . ' (' . $oldStatus . ' → ' . $validated['status'] . ')', $changes);
+
         if ($request->ajax()) {
             return response()->json([
                 'success' => true,
@@ -250,6 +273,8 @@ class OutboundShipmentController extends Controller
      */
     public function destroy(OutboundShipment $outboundShipment)
     {
+        $trackingNumber = $outboundShipment->tracking_number;
+        
         // Restore stock quantity and release packages
         foreach ($outboundShipment->packages as $package) {
             // Restore product stock quantity
@@ -264,6 +289,8 @@ class OutboundShipmentController extends Controller
         }
 
         $outboundShipment->delete();
+
+        ActivityLog::log('deleted', $outboundShipment, 'Outbound shipment deleted: ' . $trackingNumber);
 
         return redirect()->route('outbound-shipments.index')
             ->with('success', 'Outbound shipment deleted successfully.');

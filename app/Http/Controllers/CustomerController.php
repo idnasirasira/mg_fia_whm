@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 
@@ -39,7 +40,9 @@ class CustomerController extends Controller
             'tax_id' => 'nullable|string|max:255',
         ]);
 
-        Customer::create($validated);
+        $customer = Customer::create($validated);
+
+        ActivityLog::log('created', $customer, 'Customer created: ' . $customer->name);
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer created successfully.');
@@ -51,6 +54,8 @@ class CustomerController extends Controller
     public function show(Customer $customer)
     {
         $customer->load(['inboundShipments', 'outboundShipments']);
+
+        ActivityLog::log('viewed', $customer, 'Customer viewed: ' . $customer->name);
 
         return view('customers.show', compact('customer'));
     }
@@ -77,7 +82,22 @@ class CustomerController extends Controller
             'tax_id' => 'nullable|string|max:255',
         ]);
 
+        $oldData = $customer->toArray();
         $customer->update($validated);
+        $newData = $customer->fresh()->toArray();
+
+        // Track changes
+        $changes = [];
+        foreach ($validated as $key => $value) {
+            if (isset($oldData[$key]) && $oldData[$key] != $value) {
+                $changes[$key] = [
+                    'old' => $oldData[$key],
+                    'new' => $value,
+                ];
+            }
+        }
+
+        ActivityLog::log('updated', $customer, 'Customer updated: ' . $customer->name, $changes);
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer updated successfully.');
@@ -88,7 +108,10 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
+        $customerName = $customer->name;
         $customer->delete();
+
+        ActivityLog::log('deleted', $customer, 'Customer deleted: ' . $customerName);
 
         return redirect()->route('customers.index')
             ->with('success', 'Customer deleted successfully.');

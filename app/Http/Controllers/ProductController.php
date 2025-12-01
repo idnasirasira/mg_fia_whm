@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Warehouse;
@@ -49,7 +50,9 @@ class ProductController extends Controller
             'location_id' => 'nullable|exists:warehouses,id',
         ]);
 
-        Product::create($validated);
+        $product = Product::create($validated);
+
+        ActivityLog::log('created', $product, 'Product created: ' . $product->name);
 
         return redirect()->route('products.index')
             ->with('success', 'Product created successfully.');
@@ -61,6 +64,8 @@ class ProductController extends Controller
     public function show(Product $product)
     {
         $product->load(['category', 'location', 'packages']);
+
+        ActivityLog::log('viewed', $product, 'Product viewed: ' . $product->name);
 
         return view('products.show', compact('product'));
     }
@@ -93,7 +98,22 @@ class ProductController extends Controller
             'location_id' => 'nullable|exists:warehouses,id',
         ]);
 
+        $oldData = $product->toArray();
         $product->update($validated);
+        $newData = $product->fresh()->toArray();
+
+        // Track changes
+        $changes = [];
+        foreach ($validated as $key => $value) {
+            if (isset($oldData[$key]) && $oldData[$key] != $value) {
+                $changes[$key] = [
+                    'old' => $oldData[$key],
+                    'new' => $value,
+                ];
+            }
+        }
+
+        ActivityLog::log('updated', $product, 'Product updated: ' . $product->name, $changes);
 
         return redirect()->route('products.index')
             ->with('success', 'Product updated successfully.');
@@ -104,7 +124,10 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $productName = $product->name;
         $product->delete();
+
+        ActivityLog::log('deleted', $product, 'Product deleted: ' . $productName);
 
         return redirect()->route('products.index')
             ->with('success', 'Product deleted successfully.');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Package;
 use Illuminate\Http\Request;
 
@@ -42,6 +43,8 @@ class PackageController extends Controller
     {
         $package->load(['inboundShipment.customer', 'outboundShipment.customer', 'product', 'location']);
 
+        ActivityLog::log('viewed', $package, 'Package viewed: #' . $package->id);
+
         return view('packages.show', compact('package'));
     }
 
@@ -63,7 +66,22 @@ class PackageController extends Controller
             'location_id' => 'nullable|exists:warehouses,id',
         ]);
 
+        $oldData = $package->toArray();
         $package->update($validated);
+        $newData = $package->fresh()->toArray();
+
+        // Track changes
+        $changes = [];
+        foreach ($validated as $key => $value) {
+            if (isset($oldData[$key]) && $oldData[$key] != $value) {
+                $changes[$key] = [
+                    'old' => $oldData[$key],
+                    'new' => $value,
+                ];
+            }
+        }
+
+        ActivityLog::log('updated', $package, 'Package updated: #' . $package->id, $changes);
 
         return redirect()->route('packages.show', $package)
             ->with('success', 'Package updated successfully.');
@@ -74,7 +92,10 @@ class PackageController extends Controller
      */
     public function destroy(Package $package)
     {
+        $packageId = $package->id;
         $package->delete();
+
+        ActivityLog::log('deleted', $package, 'Package deleted: #' . $packageId);
 
         return redirect()->route('packages.index')
             ->with('success', 'Package deleted successfully.');

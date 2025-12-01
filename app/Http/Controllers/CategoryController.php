@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Category;
 use Illuminate\Http\Request;
 
@@ -41,7 +42,9 @@ class CategoryController extends Controller
             'parent_id' => 'nullable|exists:categories,id',
         ]);
 
-        Category::create($validated);
+        $category = Category::create($validated);
+
+        ActivityLog::log('created', $category, 'Category created: ' . $category->name);
 
         return redirect()->route('categories.index')
             ->with('success', 'Category created successfully.');
@@ -53,6 +56,8 @@ class CategoryController extends Controller
     public function show(Category $category)
     {
         $category->load(['parent', 'children', 'products']);
+
+        ActivityLog::log('viewed', $category, 'Category viewed: ' . $category->name);
 
         return view('categories.show', compact('category'));
     }
@@ -87,7 +92,22 @@ class CategoryController extends Controller
                 ->withInput();
         }
 
+        $oldData = $category->toArray();
         $category->update($validated);
+        $newData = $category->fresh()->toArray();
+
+        // Track changes
+        $changes = [];
+        foreach ($validated as $key => $value) {
+            if (isset($oldData[$key]) && $oldData[$key] != $value) {
+                $changes[$key] = [
+                    'old' => $oldData[$key],
+                    'new' => $value,
+                ];
+            }
+        }
+
+        ActivityLog::log('updated', $category, 'Category updated: ' . $category->name, $changes);
 
         return redirect()->route('categories.index')
             ->with('success', 'Category updated successfully.');
@@ -107,7 +127,10 @@ class CategoryController extends Controller
         // Move children to parent or make them root
         $category->children()->update(['parent_id' => $category->parent_id]);
 
+        $categoryName = $category->name;
         $category->delete();
+
+        ActivityLog::log('deleted', $category, 'Category deleted: ' . $categoryName);
 
         return redirect()->route('categories.index')
             ->with('success', 'Category deleted successfully.');

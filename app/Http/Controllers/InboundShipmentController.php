@@ -121,6 +121,8 @@ class InboundShipmentController extends Controller
     {
         $inboundShipment->load(['customer', 'packages.product', 'packages.location']);
 
+        ActivityLog::log('viewed', $inboundShipment, 'Inbound shipment viewed: ' . $inboundShipment->tracking_number);
+
         return view('inbound-shipments.show', compact('inboundShipment'));
     }
 
@@ -149,7 +151,20 @@ class InboundShipmentController extends Controller
         ]);
 
         $oldStatus = $inboundShipment->status;
+        $oldData = $inboundShipment->toArray();
         $inboundShipment->update($validated);
+        $newData = $inboundShipment->fresh()->toArray();
+
+        // Track changes
+        $changes = [];
+        foreach ($validated as $key => $value) {
+            if (isset($oldData[$key]) && $oldData[$key] != $value) {
+                $changes[$key] = [
+                    'old' => $oldData[$key],
+                    'new' => $value,
+                ];
+            }
+        }
 
         // Update package status based on shipment status
         if ($validated['status'] === 'stored') {
@@ -178,6 +193,8 @@ class InboundShipmentController extends Controller
             }
         }
 
+        ActivityLog::log('updated', $inboundShipment, 'Inbound shipment updated: ' . $inboundShipment->tracking_number, $changes);
+
         return redirect()->route('inbound-shipments.show', $inboundShipment)
             ->with('success', 'Inbound shipment updated successfully.');
     }
@@ -187,7 +204,10 @@ class InboundShipmentController extends Controller
      */
     public function destroy(InboundShipment $inboundShipment)
     {
+        $trackingNumber = $inboundShipment->tracking_number;
         $inboundShipment->delete();
+
+        ActivityLog::log('deleted', $inboundShipment, 'Inbound shipment deleted: ' . $trackingNumber);
 
         return redirect()->route('inbound-shipments.index')
             ->with('success', 'Inbound shipment deleted successfully.');

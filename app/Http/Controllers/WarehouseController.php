@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
 
@@ -40,7 +41,9 @@ class WarehouseController extends Controller
             'status' => 'required|string|in:active,inactive,maintenance',
         ]);
 
-        Warehouse::create($validated);
+        $warehouse = Warehouse::create($validated);
+
+        ActivityLog::log('created', $warehouse, 'Warehouse created: ' . $warehouse->name);
 
         return redirect()->route('warehouses.index')
             ->with('success', 'Warehouse created successfully.');
@@ -52,6 +55,8 @@ class WarehouseController extends Controller
     public function show(Warehouse $warehouse)
     {
         $warehouse->load(['products', 'packages', 'users']);
+
+        ActivityLog::log('viewed', $warehouse, 'Warehouse viewed: ' . $warehouse->name);
 
         return view('warehouses.show', compact('warehouse'));
     }
@@ -77,7 +82,22 @@ class WarehouseController extends Controller
             'status' => 'required|string|in:active,inactive,maintenance',
         ]);
 
+        $oldData = $warehouse->toArray();
         $warehouse->update($validated);
+        $newData = $warehouse->fresh()->toArray();
+
+        // Track changes
+        $changes = [];
+        foreach ($validated as $key => $value) {
+            if (isset($oldData[$key]) && $oldData[$key] != $value) {
+                $changes[$key] = [
+                    'old' => $oldData[$key],
+                    'new' => $value,
+                ];
+            }
+        }
+
+        ActivityLog::log('updated', $warehouse, 'Warehouse updated: ' . $warehouse->name, $changes);
 
         return redirect()->route('warehouses.index')
             ->with('success', 'Warehouse updated successfully.');
@@ -88,7 +108,10 @@ class WarehouseController extends Controller
      */
     public function destroy(Warehouse $warehouse)
     {
+        $warehouseName = $warehouse->name;
         $warehouse->delete();
+
+        ActivityLog::log('deleted', $warehouse, 'Warehouse deleted: ' . $warehouseName);
 
         return redirect()->route('warehouses.index')
             ->with('success', 'Warehouse deleted successfully.');

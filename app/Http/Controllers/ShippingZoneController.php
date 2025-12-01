@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\ShippingZone;
 use Illuminate\Http\Request;
 
@@ -47,12 +48,14 @@ class ShippingZoneController extends Controller
             'per_kg_rate' => $validated['per_kg_rate'] ?? 0,
         ];
 
-        ShippingZone::create([
+        $shippingZone = ShippingZone::create([
             'name' => $validated['name'],
             'countries' => $validated['countries'],
             'shipping_rates' => $shippingRates,
             'estimated_delivery' => $validated['estimated_delivery'] ?? null,
         ]);
+
+        ActivityLog::log('created', $shippingZone, 'Shipping zone created: ' . $shippingZone->name);
 
         return redirect()->route('shipping-zones.index')
             ->with('success', 'Shipping zone created successfully.');
@@ -64,6 +67,8 @@ class ShippingZoneController extends Controller
     public function show(ShippingZone $shippingZone)
     {
         $shippingZone->load('outboundShipments.customer');
+
+        ActivityLog::log('viewed', $shippingZone, 'Shipping zone viewed: ' . $shippingZone->name);
 
         return view('shipping-zones.show', compact('shippingZone'));
     }
@@ -96,12 +101,38 @@ class ShippingZoneController extends Controller
             'per_kg_rate' => $validated['per_kg_rate'] ?? 0,
         ];
 
+        $oldData = $shippingZone->toArray();
         $shippingZone->update([
             'name' => $validated['name'],
             'countries' => $validated['countries'],
             'shipping_rates' => $shippingRates,
             'estimated_delivery' => $validated['estimated_delivery'] ?? null,
         ]);
+        $newData = $shippingZone->fresh()->toArray();
+
+        // Track changes
+        $changes = [];
+        $oldData['shipping_rates'] = $oldData['shipping_rates'] ?? [];
+        $newData['shipping_rates'] = $shippingRates;
+        
+        foreach (['name', 'countries', 'estimated_delivery'] as $key) {
+            if (isset($oldData[$key]) && $oldData[$key] != $newData[$key]) {
+                $changes[$key] = [
+                    'old' => $oldData[$key],
+                    'new' => $newData[$key],
+                ];
+            }
+        }
+        
+        // Compare shipping rates
+        if ($oldData['shipping_rates'] != $shippingRates) {
+            $changes['shipping_rates'] = [
+                'old' => $oldData['shipping_rates'],
+                'new' => $shippingRates,
+            ];
+        }
+
+        ActivityLog::log('updated', $shippingZone, 'Shipping zone updated: ' . $shippingZone->name, $changes);
 
         return redirect()->route('shipping-zones.index')
             ->with('success', 'Shipping zone updated successfully.');
@@ -112,7 +143,10 @@ class ShippingZoneController extends Controller
      */
     public function destroy(ShippingZone $shippingZone)
     {
+        $shippingZoneName = $shippingZone->name;
         $shippingZone->delete();
+
+        ActivityLog::log('deleted', $shippingZone, 'Shipping zone deleted: ' . $shippingZoneName);
 
         return redirect()->route('shipping-zones.index')
             ->with('success', 'Shipping zone deleted successfully.');

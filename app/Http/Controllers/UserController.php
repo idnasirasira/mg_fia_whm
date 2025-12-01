@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Http\Request;
@@ -45,13 +46,15 @@ class UserController extends Controller
             'warehouse_id' => ['nullable', 'exists:warehouses,id'],
         ]);
 
-        User::create([
+        $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
             'warehouse_id' => $validated['warehouse_id'] ?? null,
         ]);
+
+        ActivityLog::log('created', $user, 'User created: ' . $user->name . ' (' . $user->email . ')');
 
         return redirect()->route('users.index')
             ->with('success', 'User created successfully.');
@@ -63,6 +66,8 @@ class UserController extends Controller
     public function show(User $user)
     {
         $user->load('warehouse');
+
+        ActivityLog::log('viewed', $user, 'User viewed: ' . $user->name);
 
         return view('users.show', compact('user'));
     }
@@ -101,7 +106,27 @@ class UserController extends Controller
             $updateData['password'] = Hash::make($validated['password']);
         }
 
+        $oldData = $user->toArray();
         $user->update($updateData);
+        $newData = $user->fresh()->toArray();
+
+        // Track changes (exclude password)
+        $changes = [];
+        foreach ($updateData as $key => $value) {
+            if ($key !== 'password' && isset($oldData[$key]) && $oldData[$key] != $value) {
+                $changes[$key] = [
+                    'old' => $oldData[$key],
+                    'new' => $value,
+                ];
+            }
+        }
+        
+        // Track password change separately if changed
+        if (!empty($validated['password'])) {
+            $changes['password'] = ['old' => '***', 'new' => '***'];
+        }
+
+        ActivityLog::log('updated', $user, 'User updated: ' . $user->name, $changes);
 
         return redirect()->route('users.index')
             ->with('success', 'User updated successfully.');
@@ -118,7 +143,11 @@ class UserController extends Controller
                 ->with('error', 'You cannot delete your own account.');
         }
 
+        $userName = $user->name;
+        $userEmail = $user->email;
         $user->delete();
+
+        ActivityLog::log('deleted', $user, 'User deleted: ' . $userName . ' (' . $userEmail . ')');
 
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully.');
