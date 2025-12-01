@@ -66,15 +66,35 @@
                         </div>
                         <div>
                             <label for="customs_value" class="block text-sm font-medium text-neutral-700">Customs Value ($)</label>
-                            <input type="number" step="0.01" name="customs_value" id="customs_value" value="{{ old('customs_value', 0) }}" min="0"
-                                class="mt-1 block w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                            <p class="mt-1 text-xs text-neutral-500">Will auto-calculate from selected packages if left empty</p>
+                            <div class="mt-1 flex gap-2">
+                                <input type="number" step="0.01" name="customs_value" id="customs_value" value="{{ old('customs_value', 0) }}" min="0"
+                                    class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                <button type="button" onclick="calculateCustomsValue()"
+                                    class="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 text-sm font-medium transition-colors"
+                                    title="Calculate from selected packages">
+                                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                    Calculate
+                                </button>
+                            </div>
+                            <p class="mt-1 text-xs text-neutral-500">Click Calculate to sum values from selected packages</p>
                         </div>
                         <div>
                             <label for="shipping_cost" class="block text-sm font-medium text-neutral-700">Shipping Cost ($)</label>
-                            <input type="number" step="0.01" name="shipping_cost" id="shipping_cost" value="{{ old('shipping_cost', 0) }}" min="0"
-                                class="mt-1 block w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                            <p class="mt-1 text-xs text-neutral-500">Will auto-calculate from shipping zone if left empty</p>
+                            <div class="mt-1 flex gap-2">
+                                <input type="number" step="0.01" name="shipping_cost" id="shipping_cost" value="{{ old('shipping_cost', 0) }}" min="0"
+                                    class="flex-1 px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                <button type="button" onclick="calculateShippingCostFromPackages()"
+                                    class="px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-500 text-sm font-medium transition-colors"
+                                    title="Calculate from shipping zone and package weight">
+                                    <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                    Calculate
+                                </button>
+                            </div>
+                            <p class="mt-1 text-xs text-neutral-500">Click Calculate to compute from shipping zone rates</p>
                             <div id="shipping-cost-preview" class="mt-2 text-sm text-primary-600 hidden"></div>
                         </div>
                     </div>
@@ -285,7 +305,7 @@
         // Initial summary update
         updatePackageSummary();
 
-        // Auto-calculate shipping cost when packages or shipping zone changes
+        // Auto-calculate shipping cost when packages or shipping zone changes (preview only)
         function calculateShippingCost() {
             const shippingZone = document.getElementById('shipping_zone_id');
             const shippingCostInput = document.getElementById('shipping_cost');
@@ -320,13 +340,9 @@
 
                 if (totalWeight > 0) {
                     const calculatedCost = baseRate + (totalWeight * perKgRate);
+                    // Only show preview, don't auto-fill (user must click Calculate button)
                     preview.textContent = `Estimated: $${calculatedCost.toFixed(2)} (Base: $${baseRate.toFixed(2)} + ${totalWeight.toFixed(2)}kg × $${perKgRate.toFixed(2)})`;
                     preview.classList.remove('hidden');
-
-                    // Auto-fill if shipping cost is 0
-                    if (parseFloat(shippingCostInput.value) === 0) {
-                        shippingCostInput.value = calculatedCost.toFixed(2);
-                    }
                 } else {
                     preview.classList.add('hidden');
                 }
@@ -350,6 +366,98 @@
         // Initial calculation
         calculateShippingCost();
     });
+
+    function calculateCustomsValue() {
+        const checkedPackages = document.querySelectorAll('.package-checkbox:checked');
+        const customsValueInput = document.getElementById('customs_value');
+
+        if (checkedPackages.length === 0) {
+            alert('Please select at least one package to calculate customs value.');
+            return;
+        }
+
+        let totalValue = 0;
+        checkedPackages.forEach(checkbox => {
+            const packageItem = checkbox.closest('.package-item');
+            if (packageItem) {
+                totalValue += parseFloat(packageItem.dataset.value) || 0;
+            }
+        });
+
+        if (totalValue > 0) {
+            customsValueInput.value = totalValue.toFixed(2);
+
+            // Show success feedback
+            const originalBg = customsValueInput.style.backgroundColor;
+            customsValueInput.style.backgroundColor = '#d1fae5';
+            setTimeout(() => {
+                customsValueInput.style.backgroundColor = originalBg;
+            }, 1000);
+        } else {
+            alert('No value found in selected packages.');
+        }
+    }
+
+    function calculateShippingCostFromPackages() {
+        const shippingZone = document.getElementById('shipping_zone_id');
+        const shippingCostInput = document.getElementById('shipping_cost');
+        const checkedPackages = document.querySelectorAll('.package-checkbox:checked');
+
+        if (checkedPackages.length === 0) {
+            alert('Please select at least one package to calculate shipping cost.');
+            return;
+        }
+
+        if (!shippingZone.value) {
+            alert('Please select a shipping zone first.');
+            shippingZone.focus();
+            return;
+        }
+
+        // Get shipping zone rates from option data
+        const selectedOption = shippingZone.options[shippingZone.selectedIndex];
+        if (!selectedOption.dataset.rates) {
+            alert('Shipping zone rates not available.');
+            return;
+        }
+
+        try {
+            const rates = JSON.parse(selectedOption.dataset.rates);
+            const baseRate = parseFloat(rates.base_rate) || 0;
+            const perKgRate = parseFloat(rates.per_kg_rate) || 0;
+
+            // Calculate total weight
+            let totalWeight = 0;
+            checkedPackages.forEach(checkbox => {
+                const packageItem = checkbox.closest('.package-item');
+                if (packageItem) {
+                    totalWeight += parseFloat(packageItem.dataset.weight) || 0;
+                }
+            });
+
+            if (totalWeight > 0) {
+                const calculatedCost = baseRate + (totalWeight * perKgRate);
+                shippingCostInput.value = calculatedCost.toFixed(2);
+
+                // Update preview
+                const preview = document.getElementById('shipping-cost-preview');
+                preview.textContent = `Calculated: $${calculatedCost.toFixed(2)} (Base: $${baseRate.toFixed(2)} + ${totalWeight.toFixed(2)}kg × $${perKgRate.toFixed(2)})`;
+                preview.classList.remove('hidden');
+
+                // Show success feedback
+                const originalBg = shippingCostInput.style.backgroundColor;
+                shippingCostInput.style.backgroundColor = '#d1fae5';
+                setTimeout(() => {
+                    shippingCostInput.style.backgroundColor = originalBg;
+                }, 1000);
+            } else {
+                alert('Selected packages have no weight information.');
+            }
+        } catch (e) {
+            console.error('Error calculating shipping cost:', e);
+            alert('Error calculating shipping cost. Please check shipping zone configuration.');
+        }
+    }
 
     function selectAllPackages() {
         const checkboxes = document.querySelectorAll('.package-checkbox');
