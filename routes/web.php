@@ -52,8 +52,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/outbound-shipments/{outboundShipment}/shipping-label', [OutboundShipmentController::class, 'shippingLabel'])->name('outbound-shipments.shipping-label');
 
     // Packages
-    Route::resource('packages', PackageController::class);
     Route::get('/packages/track', [PackageController::class, 'track'])->name('packages.track');
+    Route::resource('packages', PackageController::class);
 
     // Shipping Zones
     Route::resource('shipping-zones', ShippingZoneController::class);

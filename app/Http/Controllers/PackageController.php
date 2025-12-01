@@ -88,16 +88,64 @@ class PackageController extends Controller
         $trackingNumber = $request->get('tracking_number');
 
         if (! $trackingNumber) {
-            return view('packages.track', ['package' => null, 'trackingNumber' => null]);
+            return view('packages.track', [
+                'packages' => null,
+                'inboundShipment' => null,
+                'outboundShipment' => null,
+                'trackingNumber' => null,
+            ]);
         }
 
-        $package = Package::whereHas('inboundShipment', function ($query) use ($trackingNumber) {
-            $query->where('tracking_number', $trackingNumber);
-        })->orWhereHas('outboundShipment', function ($query) use ($trackingNumber) {
-            $query->where('tracking_number', $trackingNumber);
-        })->with(['inboundShipment.customer', 'outboundShipment.customer', 'product', 'location'])
+        // Try to find inbound shipment first
+        $inboundShipment = \App\Models\InboundShipment::where('tracking_number', $trackingNumber)
+            ->with(['customer', 'packages.product', 'packages.location'])
             ->first();
 
-        return view('packages.track', ['package' => $package, 'trackingNumber' => $trackingNumber]);
+        // Try to find outbound shipment
+        $outboundShipment = \App\Models\OutboundShipment::where('tracking_number', $trackingNumber)
+            ->with(['customer', 'shippingZone', 'packages.product', 'packages.location'])
+            ->first();
+
+        $packages = collect();
+
+        if ($inboundShipment) {
+            $packages = $packages->merge($inboundShipment->packages);
+        }
+
+        if ($outboundShipment) {
+            // Merge outbound packages, avoiding duplicates
+            foreach ($outboundShipment->packages as $package) {
+                if (!$packages->contains('id', $package->id)) {
+                    $packages->push($package);
+                }
+            }
+        }
+
+        // If no shipment found, try to find package directly
+        if ($packages->isEmpty()) {
+            $package = Package::whereHas('inboundShipment', function ($query) use ($trackingNumber) {
+                $query->where('tracking_number', $trackingNumber);
+            })->orWhereHas('outboundShipment', function ($query) use ($trackingNumber) {
+                $query->where('tracking_number', $trackingNumber);
+            })->with(['inboundShipment.customer', 'outboundShipment.customer', 'product', 'location'])
+                ->first();
+
+            if ($package) {
+                $packages = collect([$package]);
+                if ($package->inboundShipment && !$inboundShipment) {
+                    $inboundShipment = $package->inboundShipment;
+                }
+                if ($package->outboundShipment && !$outboundShipment) {
+                    $outboundShipment = $package->outboundShipment;
+                }
+            }
+        }
+
+        return view('packages.track', [
+            'packages' => $packages->isEmpty() ? null : $packages,
+            'inboundShipment' => $inboundShipment,
+            'outboundShipment' => $outboundShipment,
+            'trackingNumber' => $trackingNumber,
+        ]);
     }
 }
